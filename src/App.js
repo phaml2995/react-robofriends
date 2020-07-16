@@ -1,41 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './App.css';
 import CardList from './component/cardList.component';
 import SearchBox from './component/searchBox.component';
 import Scroll from './component/Scroll.component';
+import { connect } from 'react-redux';
+import * as Actions from './redux/actions';
+import Header from './component/header.component';
 
-function App() {
-  const [robot, setRobot] = useState([]);
-  const [searchField, setSearchField] = useState('');
 
-  const onSearchChange = (event) => {
-    setSearchField(event.target.value)
+const mapStateToProps = state => {
+  return {
+    searchField: state.searchRobots.searchField,
+    robots: state.requestRobots.robots,
+    isPending: state.requestRobots.isPending,
+    error: state.requestRobots.error
   }
-
-  const filteredRobots = robot.filter(r => {
-    return r.name.toLowerCase().includes(searchField.toLowerCase());
-  })
-
-  const fetchData = async () => {
-    const result = await fetch('https://jsonplaceholder.typicode.com/users')
-    const response = await result.json();
-    setRobot(response);
-  }
-
-  useEffect(() => {
-    fetchData();
-  }, [searchField])
-
-
-  return (
-    <div className="App">
-      <h1 className="f1 ma3">RoboFriends</h1>
-      <SearchBox searchChange={onSearchChange} />
-      <Scroll>
-        <CardList robots={filteredRobots} />
-      </Scroll>
-    </div>
-  );
 }
 
-export default App;
+const mapDispatchToProps = dispatch => {
+  return {
+    onSearchChange: (event) => dispatch(Actions.setSearchField(event.target.value)),
+    onRequestRobots: () => dispatch(Actions.requestRobots())
+  }
+}
+
+class App extends React.Component {
+  
+  componentDidMount() {
+    this.props.onRequestRobots();
+  }
+
+  render(){
+    const  {searchField, onSearchChange, robots, isPending} = this.props;
+    const filteredRobots = robots.filter(robot => {
+      return robot.name.toLowerCase().includes(searchField.toLowerCase());
+    })
+    return  isPending ? <h1>Loading</h1> : (
+      <div className="App">
+        <Header />
+        <SearchBox searchChange={onSearchChange} />
+        <Scroll>
+          <CardList robots={filteredRobots} />
+        </Scroll>
+      </div>
+    )
+  }
+}
+
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

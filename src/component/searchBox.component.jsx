@@ -2,6 +2,7 @@ import React from 'react';
 import '../style/searchBox.styles.scss';
 
 const SearchBox = ({ searchChange }) => {
+    console.log("SearchBox");
     return (
         <div className="container">
             <input
